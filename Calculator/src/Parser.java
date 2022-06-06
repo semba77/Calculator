@@ -8,19 +8,21 @@ public class Parser {
     String input;
     ASTNode lookAhead;
 
+
+
     public Parser(String input) {
         this.input = input;
         this.tokenizer = new Tokenizer(input);
     }
 
-    ASTNode eat(Tokenizer.Token type) throws ParserSyntaxError {
-        ASTNode token = lookAhead;
-        if (token == null)
-            throw new ParserSyntaxError("Unexpected end of input, expected: "+type);
-        if (token.type != type)
-            throw new ParserSyntaxError("Unexpected token: " + token.value + ", expected: " + type);
+    ASTNode eat(Tokenizer.Token token) throws ParserSyntaxError {
+        ASTNode node = lookAhead;
+        if (node == null)
+            throw new ParserSyntaxError("Unexpected end of input, expected: " + token);
+        if (node.type != type)
+            throw new ParserSyntaxError("Unexpected token: " + node.value + ", expected: " + token);
         lookAhead = tokenizer.getNextToken();
-        return token;
+        return node;
     }
 
     ASTNode parse() {
@@ -33,14 +35,18 @@ public class Parser {
     }
 
     ASTNode Expression() {
-     /*   switch (lookAhead.type) {
-            case TOKEN_NUMBER:
-                return NumericLiteral();
-            case TOKEN_PLUS: */
-                return PlusExpression();
-         /*   default:
-                return null;
-        }*/
+        ASTNode node;
+        switch (lookAhead.type) {
+            case NUMERIC_LITERAL:
+                node = NumericLiteral();
+                break;
+            case ADDITIVE_OPERATOR:
+                node = AdditiveExpression();
+                break;
+            default:
+                node = null;
+        }
+        return node;
     }
 
     ASTNode NumericLiteral() {
@@ -52,18 +58,23 @@ public class Parser {
         return null;
     }
 
-    ASTNode PlusExpression(){
+    ASTNode PrmaryExpression() {
+        switch (lookAhead.type) {
+            case NUMERIC_LITERAL:
+
+        }
+    }
+    ASTNode AdditiveExpression(){
         ASTNode left = NumericLiteral();
-        if (lookAhead.type == Tokenizer.Token.TOKEN_PLUS) {
+        while (lookAhead.type == Tokenizer.Token.TOKEN_PLUS) {
             try {
                 ASTNode plus = eat(Tokenizer.Token.TOKEN_PLUS);
-                plus.left = left;
-                plus.right = NumericLiteral();
-                return plus;
+                ASTNode right = NumericLiteral();
+                left = new ASTNode(plus.type, left, right);
             } catch (ParserSyntaxError e) {
                 System.exit(1);
             }
         }
-        return null;
+        return left;
     }
 }

@@ -1,17 +1,23 @@
 public class ASTNode {
 
-    Tokenizer.Token type;
+    enum NodeType {
+        NUMERIC_LITERAL,
+        ADDITIVE_OPERATOR,
+        MULTIPLICATION_OPERATOR
+    }
+
+    NodeType type;
     int value;
     ASTNode left;
     ASTNode right;
 
-    public ASTNode(Tokenizer.Token type, ASTNode left, ASTNode right) {
+    public ASTNode(NodeType type, ASTNode left, ASTNode right) {
         this.type = type;
         this.left = left;
         this.right = right;
     }
 
-    public ASTNode(Tokenizer.Token type, Integer number) {
+    public ASTNode(NodeType type, Integer number) {
         this.type = type;
         this.value = number;
         this.left = null;
@@ -20,9 +26,9 @@ public class ASTNode {
 
     public int eval() {
         switch (type) {
-            case TOKEN_NUMBER:
+            case NUMERIC_LITERAL:
                 return value;
-            case TOKEN_PLUS:
+            case ADDITIVE_OPERATOR:
                 return left.eval() + right.eval();
             default:
                 return 0;
