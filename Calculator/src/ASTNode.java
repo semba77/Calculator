@@ -1,47 +1,49 @@
 public class ASTNode {
 
-    enum NodeType {
-        NUMERIC_LITERAL,
-        ADDITIVE_OPERATOR,
-        MULTIPLICATION_OPERATOR
-    }
-
-    NodeType type;
-    int value;
+    Token token;
     ASTNode left;
     ASTNode right;
 
-    public ASTNode(NodeType type, ASTNode left, ASTNode right) {
-        this.type = type;
+    public ASTNode(Token token, ASTNode left, ASTNode right) {
+        this.token = token;
         this.left = left;
         this.right = right;
     }
 
-    public ASTNode(NodeType type, Integer number) {
-        this.type = type;
-        this.value = number;
-        this.left = null;
-        this.right = null;
-    }
-
-    public int eval() {
-        switch (type) {
-            case NUMERIC_LITERAL:
-                return value;
-            case ADDITIVE_OPERATOR:
-                return left.eval() + right.eval();
-            default:
-                return 0;
-        }
+    public double eval() throws Exception {
+        return switch (token.type) {
+            case NUMERIC_LITERAL -> token.numericValue;
+            case ADDITIVE_OPERATOR, MULTIPLICATIVE_OPERATOR -> switch (token.operator) {
+                case '+' -> left.eval() + right.eval();
+                case '-' -> left.eval() - right.eval();
+                case '*' -> left.eval() * right.eval();
+                case '/' -> left.eval() / right.eval();
+                default -> throw new Exception("Invalid token operator" + token.operator);
+            };
+            case ONE_PARM_FUNCTION -> switch (token.function) {
+                case "sin" -> Math.sin(left.eval());
+                case "cos" -> Math.cos(left.eval());
+                case "tan" -> Math.tan(left.eval());
+                case "log" -> Math.log(left.eval());
+                case "exp" -> Math.exp(left.eval());
+                case "sqrt" -> Math.sqrt(left.eval());
+                default -> throw new Exception("Invalid token function" + token.function);
+            };
+            default -> 0;
+        };
     }
 
     @Override
     public String toString() {
         return "ASTNode{" +
-                "type=" + type +
-                ", value=" + value +
-                ", left=" + left +
-                ", right=" + right +
-                '}';
+                token +
+                switch (token.type) {
+                    case WHITESPACE, NUMERIC_LITERAL -> "";
+                    case ADDITIVE_OPERATOR, MULTIPLICATIVE_OPERATOR -> ",left=" + left + ",right=" + right;
+                    case PARENTHESIS_OPEN -> null;
+                    case PARENTHESIS_CLOSE -> null;
+                    case ONE_PARM_FUNCTION -> ",left=" + left;
+                }
+                + '}';
     }
 }

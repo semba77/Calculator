@@ -1,57 +1,57 @@
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 public class Tokenizer {
-    enum Token {
-        TOKEN_UNKNOWN,
-        TOKEN_WHITESPACE,
-        TOKEN_NUMBER,
-        TOKEN_PLUS,
-        TOKEN_MINUS
-    }
+
 
     String buffer;
     int cursor;
-    private HashMap<Token, String> tokenRegExpHashMap;
+    private HashMap<Token.Type, String> tokenRegExpHashMap;
 
     public Tokenizer(String input) {
-        this.buffer = input;
-        this.cursor = 0;
-        tokenRegExpHashMap = new HashMap<Token, String>();
-        tokenRegExpHashMap.put(Token.TOKEN_WHITESPACE, "^\\s+");
-        tokenRegExpHashMap.put(Token.TOKEN_NUMBER, "^\\d+");
-        tokenRegExpHashMap.put(Token.TOKEN_PLUS, "^\\+");
+        init(input);
+        tokenRegExpHashMap = new HashMap<Token.Type, String>();
+        tokenRegExpHashMap.put(Token.Type.WHITESPACE, "^\\s+");
+        tokenRegExpHashMap.put(Token.Type.NUMERIC_LITERAL, "^\\d+(\\.\\d+)?");
+        tokenRegExpHashMap.put(Token.Type.ADDITIVE_OPERATOR, "^[\\+|\\-]");
+        tokenRegExpHashMap.put(Token.Type.MULTIPLICATIVE_OPERATOR, "^[\\*|\\/]");
+        tokenRegExpHashMap.put(Token.Type.PARENTHESIS_OPEN, "^\\(");
+        tokenRegExpHashMap.put(Token.Type.PARENTHESIS_CLOSE, "^\\)");
+        tokenRegExpHashMap.put(Token.Type.ONE_PARM_FUNCTION, "^(sin|cos|tan|log|exp|sqrt)");
+
     }
 
-    boolean hasMoreTokens() {
+    private void init(String string) {
+        this.buffer = string;
+        this.cursor = 0;
+    }
+
+    private boolean hasMoreTokens() {
         return cursor < buffer.length();
     }
 
-    ASTNode getNextToken() throws Parser.ParserSyntaxError {
+
+    public Token getNextToken() throws Parser.ParserSyntaxException {
         if (!hasMoreTokens())
             return null;
         String rest = buffer.substring(cursor);
-        for (Token tokenType: tokenRegExpHashMap.keySet()) {
+        for (Token.Type tokenType: tokenRegExpHashMap.keySet()) {
             Pattern pattern = Pattern.compile(tokenRegExpHashMap.get(tokenType));
             Matcher matcher = pattern.matcher(rest);
             if (matcher.find()) {
                 cursor += matcher.group().length();
-                switch (tokenType) {
-                    case TOKEN_WHITESPACE:
-                        return getNextToken();
-                    case TOKEN_NUMBER:
-                        return new ASTNode(tokenType, Integer.parseInt(matcher.group()));
-                    case TOKEN_PLUS:
-                        return new ASTNode(tokenType, null, null);
-                    default:
-                        throw new Parser.ParserSyntaxError("Not yet implemented for " + rest);
-                }
+                return switch (tokenType) {
+                    case WHITESPACE -> getNextToken();
+                    case NUMERIC_LITERAL -> new Token(tokenType, Double.parseDouble(matcher.group()));
+                    case ADDITIVE_OPERATOR,MULTIPLICATIVE_OPERATOR -> new Token(tokenType, matcher.group().charAt(0));
+                    case PARENTHESIS_OPEN, PARENTHESIS_CLOSE -> new Token(tokenType);
+                    case ONE_PARM_FUNCTION -> new Token(tokenType, matcher.group());
+                    default -> throw new Parser.ParserSyntaxException("Not yet implemented for token '" + rest.charAt(0) + "' in input: " + rest);
+                };
             }
         }
-        throw new Parser.ParserSyntaxError("Unknown string in input: " + rest);
+        throw new Parser.ParserSyntaxException("Unknown token '" + rest.charAt(0) + "' in input: " + rest);
     }
 
 
