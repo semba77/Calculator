@@ -19,7 +19,8 @@ public class Tokenizer {
         tokenRegExpHashMap.put(Token.Type.PARENTHESIS_OPEN, "^\\(");
         tokenRegExpHashMap.put(Token.Type.PARENTHESIS_CLOSE, "^\\)");
         tokenRegExpHashMap.put(Token.Type.ONE_PARM_FUNCTION, "^(sin|cos|tan|log|exp|sqrt)");
-
+        tokenRegExpHashMap.put(Token.Type.TWO_PARM_FUNCTION, "^(min|max|nsd|nsn)");
+        tokenRegExpHashMap.put(Token.Type.COMMA, "^\\,");
     }
 
     private void init(String string) {
@@ -43,10 +44,11 @@ public class Tokenizer {
                 cursor += matcher.group().length();
                 return switch (tokenType) {
                     case WHITESPACE -> getNextToken();
+                    case COMMA -> new Token(Token.Type.COMMA);
                     case NUMERIC_LITERAL -> new Token(tokenType, Double.parseDouble(matcher.group()));
                     case ADDITIVE_OPERATOR,MULTIPLICATIVE_OPERATOR -> new Token(tokenType, matcher.group().charAt(0));
                     case PARENTHESIS_OPEN, PARENTHESIS_CLOSE -> new Token(tokenType);
-                    case ONE_PARM_FUNCTION -> new Token(tokenType, matcher.group());
+                    case ONE_PARM_FUNCTION,TWO_PARM_FUNCTION -> new Token(tokenType, matcher.group());
                     default -> throw new Parser.ParserSyntaxException("Not yet implemented for token '" + rest.charAt(0) + "' in input: " + rest);
                 };
             }

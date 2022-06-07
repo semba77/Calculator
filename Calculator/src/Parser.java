@@ -1,10 +1,10 @@
 public class Parser {
     public static class ParserSyntaxException extends Exception {
         public ParserSyntaxException(String msg) {
-            super("Syntax error while parsing: " + msg);
+            super("Syntax error while parsing: '" + tokenizer.buffer + "'" + " at position " + tokenizer.cursor + " : " + msg);
         }
     }
-    private final Tokenizer tokenizer;
+    private static Tokenizer tokenizer;
     private Token lookAhead;
     public Parser(String input) {
         this.tokenizer = new Tokenizer(input);
@@ -17,11 +17,12 @@ public class Parser {
             throw new ParserSyntaxException("Unexpected token: " +
                     switch (token.type) {
                         case WHITESPACE -> null;
+                        case COMMA -> ',';
                         case NUMERIC_LITERAL -> token.numericValue;
                         case ADDITIVE_OPERATOR, MULTIPLICATIVE_OPERATOR -> token.operator;
                         case PARENTHESIS_OPEN -> '(';
                         case PARENTHESIS_CLOSE -> ')';
-                        case ONE_PARM_FUNCTION -> token.function;
+                        case ONE_PARM_FUNCTION, TWO_PARM_FUNCTION -> token.function;
                     } +
                     ", expected: " + tokenType);
         lookAhead = tokenizer.getNextToken();
@@ -43,14 +44,34 @@ public class Parser {
         return switch (lookAhead.type) {
             case PARENTHESIS_OPEN -> ParenthesizedExpression();
             case ONE_PARM_FUNCTION -> OneParmFunction();
+            case TWO_PARM_FUNCTION -> TwoParmFunction();
             default -> NumericLiteral();
         };
+    }
+
+    private ASTNode TwoParmFunction() {
+        try {
+            Token function = eat(Token.Type.TWO_PARM_FUNCTION);
+            eat(Token.Type.PARENTHESIS_OPEN);
+            ASTNode first = PrimaryExpression();
+            eat(Token.Type.COMMA);
+            ASTNode second = PrimaryExpression();
+            eat(Token.Type.PARENTHESIS_CLOSE);
+            return new ASTNode(function, first, second);
+        } catch (ParserSyntaxException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return null;
     }
 
     private ASTNode OneParmFunction() {
         try {
             Token function = eat(Token.Type.ONE_PARM_FUNCTION);
-            return new ASTNode(function, PrimaryExpression(), null);
+            eat(Token.Type.PARENTHESIS_OPEN);
+            ASTNode arg = Expression();
+            eat(Token.Type.PARENTHESIS_CLOSE);
+            return new ASTNode(function, arg, null);
         } catch (ParserSyntaxException e) {
             System.out.println(e.getMessage());
             System.exit(1);

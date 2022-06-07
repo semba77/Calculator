@@ -1,12 +1,14 @@
 public class Token {
     enum Type {
         WHITESPACE,
+        COMMA,
         NUMERIC_LITERAL,
         ADDITIVE_OPERATOR,
         MULTIPLICATIVE_OPERATOR,
         PARENTHESIS_OPEN,
         PARENTHESIS_CLOSE,
-        ONE_PARM_FUNCTION
+        ONE_PARM_FUNCTION,
+        TWO_PARM_FUNCTION
     }
     Type type;
     double numericValue;
@@ -37,12 +39,12 @@ public class Token {
         return "Token{" +
                 "type=" + type +
                 switch (type) {
-                    case WHITESPACE -> null;
+                    case WHITESPACE, COMMA -> null;
                     case NUMERIC_LITERAL -> ", numericValue=" + numericValue;
                     case ADDITIVE_OPERATOR, MULTIPLICATIVE_OPERATOR -> ", operator=" + operator;
                     case PARENTHESIS_OPEN -> '(';
                     case PARENTHESIS_CLOSE -> ')';
-                    case ONE_PARM_FUNCTION -> ", function=" + function;
+                    case ONE_PARM_FUNCTION, TWO_PARM_FUNCTION -> ", function=" + function;
                 } +
                 '}';
     }
