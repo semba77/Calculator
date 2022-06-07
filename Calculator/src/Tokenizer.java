@@ -13,7 +13,7 @@ public class Tokenizer {
         init(input);
         tokenRegExpHashMap = new HashMap<Token.Type, String>();
         tokenRegExpHashMap.put(Token.Type.WHITESPACE, "^\\s+");
-        tokenRegExpHashMap.put(Token.Type.NUMERIC_LITERAL, "^\\d+(\\.\\d+)?");
+        tokenRegExpHashMap.put(Token.Type.NUMERIC_LITERAL, "^\\-?\\d+(\\.\\d+)?");
         tokenRegExpHashMap.put(Token.Type.ADDITIVE_OPERATOR, "^[\\+|\\-]");
         tokenRegExpHashMap.put(Token.Type.MULTIPLICATIVE_OPERATOR, "^[\\*|\\/]");
         tokenRegExpHashMap.put(Token.Type.PARENTHESIS_OPEN, "^\\(");
